@@ -1,13 +1,9 @@
-
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.util.AffineTransformation;
-import com.vividsolutions.jts.geom.util.AffineTransformationBuilder;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
-
 import org.apache.commons.lang3.StringUtils;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
@@ -30,10 +26,10 @@ import java.util.Map;
  * Date:     2020.06.08 09:32
  * Description: 读取txt
  */
-public class ReadTxt {
+public class ReadTxt2 {
     private static final Integer ONE = 1;
 
-    BigDecimal area;
+    static Double area;
     private Map<String, String> attribute;
 
     private Geometry geometry;
@@ -41,9 +37,6 @@ public class ReadTxt {
     private String crsSourceCode;
 
     private String crsTargetCode = "EPSG:4490";
-
-    List<List<Double[]>> points = new ArrayList<>();
-    List<List<String[]>> points2 = new ArrayList<>();
 
     public Map<String, String> getAttribute() {
         return attribute;
@@ -61,27 +54,30 @@ public class ReadTxt {
         this.geometry = geometry;
     }
 
-    public ReadTxt() {
+    public ReadTxt2() {
         this.attribute = new HashMap<String, String>();
         this.geometry = null;
     }
 
-   static   GeomUtil  geomUtil = GeomUtil.getInstance();
+    static GeomUtil geomUtil = GeomUtil.getInstance();
+
     public static void main(String[] args) {
-        ReadTxt readTxt = new ReadTxt();
-        File file = new File("C:\\Users\\Administrator\\Desktop\\项目范围线.txt");
+        ReadTxt2 readTxt = new ReadTxt2();
+        File file = new File("D:\\WeChatFiles\\WXWork\\1688853956472127\\Cache\\File\\2020-07\\项目用地边界拐点坐标36.txt");
+        //File file = new File("D:\\WeChatFiles\\WXWork\\1688853956472127\\Cache\\File\\2020-06\\2020.5.26材料打印\\永久基本农田占用审批\\1建设项目\\项目范围线.txt");
         /* 输出数据 */
         try {
 
-            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File("D:/value_map.txt")),"UTF-8"));
-            bw.write(readTxt.readTxtFile(file).toText());
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File("d:/value_map.txt")), "UTF-8"));
+            readTxt.readTxtFile(file);
+
             bw.newLine();
             bw.newLine();
             bw.newLine();
             bw.newLine();
             bw.newLine();
             bw.newLine();
-            bw.write(readTxt.getGeometry().toText());
+            /*bw.write(readTxt.getGeometry().toText());*/
             bw.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -91,83 +87,54 @@ public class ReadTxt {
 
 
     public Geometry readTxtFile(File file) {
-
+        List<List<Double[]>> points = new ArrayList<>();
+        List<List<BigDecimal[]>> points2 = new ArrayList<>();
         /* 读取数据 */
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), "GBK"));
             String lineTxt = null;
-            String startKey = "";
-            int readStartKey = 0;
 
             int i = -1;
             boolean flag = false;//是否开始记录点数据
-            boolean flag2 = false;//是否开始记录一个新的多边形点数据
+            String ttt = "";
             while ((lineTxt = br.readLine()) != null) {//数据以逗号分隔
-                if(readStartKey == 1){
-                    startKey = lineTxt.split(",")[0] + ",";
-                    readStartKey = 2;
-                }
-                if (readStartKey != 0 && lineTxt.contains(startKey)) {
-                    if(!flag2){
-                        i++;
-                        List<Double[]> list = new ArrayList<>();
-                        List<String[]> list2 = new ArrayList<>();
-                        points.add(list);
-                        points2.add(list2);
-
+               if (lineTxt.contains("J1,")) {
+                    if(StringUtils.isEmpty(ttt)){
+                        ttt = lineTxt;
                     }else{
-                        readLineTxt(lineTxt, i);
-                    }
-                    flag2 = !flag2;
+                        if(ttt.equals(lineTxt)){
+                            ttt = "";
+                        }else{
+                            System.out.println(ttt);
+                            ttt = "";
+                        }
 
-                }
-                if (!flag && lineTxt.contains("=")) {
-                    String[] arr = lineTxt.split("=");
-                    String key = "";
-                    String value = "";
-                    if(arr.length > 1){
-                        key = arr[0];
-                        value = arr[1];
-                        this.attribute.put(key, value);
-                    }
-
-                } else if (flag && flag2 && !lineTxt.contains("@")) {
-                    readLineTxt(lineTxt, i);
-                }
-
-                if (lineTxt.contains("@")) {
-                    flag = true;
-                    if(readStartKey == 0){
-                        readStartKey = 1;
                     }
                 }
             }
             br.close();
-
-            String wkt = getWkt(points);
+/*            while ((lineTxt = br.readLine()) != null) {//数据以逗号分隔
+                if (lineTxt.contains("J1,")) {
+                    if(map.containsKey(lineTxt)){
+                        map.put(lineTxt, map.get(lineTxt)+1);
+                    }else{
+                        map.put(lineTxt, 1);
+                    }
+                }
+            }*/
+            /*String wkt = getWkt(points);
             String wkt2 = getWkt2(points2);
 
             this.geometry = wktToGeometry(wkt);
             Geometry geometry = wktToGeometry(wkt2);
-            area = new BigDecimal(geometry.getArea()).setScale(4,BigDecimal.ROUND_HALF_UP);
+            area = geometry.getArea();*/
+
+            /* this.geometry = this.projectTransform(this.geometry);*/
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return geometry;
-    }
-
-    public void readLineTxt(String lineTxt, int i) throws Exception{
-        String a = lineTxt.split(",")[2];
-        String b = lineTxt.split(",")[3];
-
-
-        Point point = (Point)this.projectTransform(createPoint(Double.parseDouble(a), Double.parseDouble(b)));
-        Double[] arr = new Double[]{point.getY(), point.getX()};
-        /*String[] arr2 = new String[]{lineTxt.split(",")[2], lineTxt.split(",")[3]};*/
-        String[] arr2 = new String[]{a, b};
-        points.get(i).add(arr);
-        points2.get(i).add(arr2);
+        return null;
     }
 
     /**
@@ -194,7 +161,7 @@ public class ReadTxt {
         Integer zoningNum = Integer.parseInt(this.attribute.get("带号"));
         String crs = (String) this.attribute.get("坐标系");
         Integer crsId = null;
-        if(zoning == 3 && "2000国家大地坐标系".equals(crs)){
+        if (zoning == 3 && "2000国家大地坐标系".equals(crs)) {
             crsId = 4513 + zoningNum - 25;
         }
         this.crsSourceCode = "EPSG:" + String.valueOf(crsId);
@@ -215,7 +182,7 @@ public class ReadTxt {
         StringBuffer sbBuffer = new StringBuffer();
         WKTReader fromText = new WKTReader();
         String wkt = sbBuffer.append(wktString).toString();
-        com.vividsolutions.jts.geom.Geometry geom = null;
+        Geometry geom = null;
         try {
             geom = fromText.read(wkt);
             geom.setSRID(4490);
@@ -241,13 +208,13 @@ public class ReadTxt {
         wkt += ")";
         return wkt;
     }
-    private String getWkt2(List<List<String[]>> points) {
+    private String getWkt2(List<List<BigDecimal[]>> points) {
         String wkt = "MULTIPOLYGON (";
         boolean flag = true;
-        for (List<String[]> list : points) {
+        for (List<BigDecimal[]> list : points) {
             wkt += "((";
-            for (String[] arr : list) {
-                wkt += arr[0] + " " + arr[1] + ",";
+            for (BigDecimal[] arr : list) {
+                wkt += arr[0].toString() + " " + arr[1].toString() + ",";
             }
             wkt = wkt.substring(0, wkt.lastIndexOf(","));
             wkt += ")),";
@@ -256,11 +223,11 @@ public class ReadTxt {
         wkt += ")";
         return wkt;
     }
-    public static Point createPoint(double longitude, double latitude){
+    public static Point createPoint(double longitude, double latitude) {
         GeometryFactory gf = new GeometryFactory();
 
-        Coordinate coord = new Coordinate(longitude, latitude );
-        Point point = gf.createPoint( coord );
+        Coordinate coord = new Coordinate(longitude, latitude);
+        Point point = gf.createPoint(coord);
 
         return point;
     }
