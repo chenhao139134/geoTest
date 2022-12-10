@@ -11,7 +11,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <hibernate.version>4.3.6.Final</hibernate.version>
-        <spring.version>4.3.6.RELEASE</spring.version>
+        <spring.version>6.0.0</spring.version>
         <geotools.version>18.4</geotools.version>
     </properties>
 
